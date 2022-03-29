@@ -1,0 +1,5 @@
+name: iacv
+channels:
+  - defaults
+  - conda-forge
+prefix: /root/anaconda3/envs/iacv
