@@ -73,6 +73,7 @@ pexpect==4.8.0
 pi-1mp==0.0.2
 pickleshare==0.7.5
 Pillow==9.0.1
+plotly==5.6.0
 preshed==3.0.6
 prometheus-client==0.13.1
 prompt-toolkit==3.0.28
@@ -109,6 +110,7 @@ spacy==3.2.3
 spacy-legacy==3.0.9
 spacy-loggers==1.0.1
 srsly==2.4.2
+tenacity==8.0.1
 terminado==0.13.3
 testpath==0.6.0
 thinc==8.0.15
