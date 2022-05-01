@@ -2,6 +2,7 @@
 import scipy.io
 import matlab.engine
 import numpy as np
+import matplotlib.pyplot as plt
 
 eng = matlab.engine.start_matlab()
 eng.addpath(r'C:\Users\allem\Desktop\multilink\fun',nargout=0)
@@ -64,14 +65,13 @@ gricParam["sigma"] = epsi;                           # gricParam.sigma = epsi;
 C = eng.multiLink(X,P,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
 thCard = 10                                          # thCard = 10; prune small clusters, e.g. using the cardinality of the mss
 
-Cpruned = eng.prune_small_clust(C,thCard);           # Cpruned = prune_small_clust(C,thCard);
+Cpruned = eng.prune_small_clust(C,thCard)            # Cpruned = prune_small_clust(C,thCard);
 
-print(Cpruned)
+                                                     # estimated clusters
+                                                    
+                                                     # figure; 
+plt.scatter(X[0], X[1], c=Cpruned ,alpha=0.5)        # gscatter(X(1,:),X(2,:),Cpruned);
+plt.show()                                                    
+                                                     # legend off, axis off, axis equal;
+                                                     # title('Estimated Clusters');
 
-'''
-%% estimated clusters
-figure; 
-gscatter(X(1,:),X(2,:),Cpruned);
-legend off, axis off, axis equal;
-title('Estimated Clusters');
-'''
