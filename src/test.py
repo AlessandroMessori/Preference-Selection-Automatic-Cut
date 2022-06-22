@@ -12,7 +12,7 @@ eng.addpath(r'C:\Users\allem\Desktop\multilink\selection',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
-temp = scipy.io.loadmat('../multilink/data/ticktoe.mat')  # temp = load('./data/ticktoe.mat');
+c  # temp = load('./data/ticktoe.mat');
 #print(temp)
 X = temp["X"].tolist()
 X = matlab.double(X)                                       # X = temp.X;
@@ -62,8 +62,10 @@ gricParam["lambda1"] = 1                             # gricParam.lambda1 = 1;
 gricParam["lambda2"] = 2                             # gricParam.lambda2 = 2;
 gricParam["sigma"] = epsi;                           # gricParam.sigma = epsi;   
 
-C = eng.multiLink(X,P,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
+C, D = eng.multiLink(X,P,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
 thCard = 10                                          # thCard = 10; prune small clusters, e.g. using the cardinality of the mss
+
+print(C)
 
 Cpruned = eng.prune_small_clust(C,thCard)            # Cpruned = prune_small_clust(C,thCard);
 
@@ -75,3 +77,4 @@ plt.show()
                                                      # legend off, axis off, axis equal;
                                                      # title('Estimated Clusters');
 
+print(len(X))

@@ -5,6 +5,7 @@ import scipy.spatial
 import scipy.cluster
 import matplotlib.cm
 import plotly.graph_objs as go
+import pandas as pd
 from sklearn.metrics import silhouette_score
 
 
@@ -22,7 +23,21 @@ class DendrogramCut:
         self.distance_matrix = distance_matrix
         self.n_data = distance_matrix.shape[0]
         self.linkage = scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
+        
+        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram.xlsx", header=None)
+        self.linkage2["3"] = 2
+        self.linkage2 = self.linkage2.to_numpy()
+
+
+        print(self.linkage)
+
+        print("--------")
+
+        print(self.linkage2)
+
+        self.linkage = self.linkage2
         self.linkage_stats = [{'c1': 0, 'c2': 0, 'css': 0, 'tss': 0, 'indices': set()} for _ in range(2 * self.n_data - 1)]
+
 
         for i in range(self.n_data):
             self.linkage_stats[i]['c1'] = i
@@ -77,6 +92,7 @@ class DendrogramCut:
         return self
 
     def _get_cut_nodes(self, v, k):
+        #print(k)
         if k == 1:
             yield v
         else:
