@@ -24,18 +24,23 @@ class DendrogramCut:
         self.n_data = distance_matrix.shape[0]
         self.linkage = scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
         
-        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram.xlsx", header=None)
+        self.linkage_test = self.linkage
+
+        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_multilink_full.xlsx", header=None)
+        self.linkage2 = self.linkage2.round(2)
         self.linkage2["3"] = 2
+
+
+
         self.linkage2 = self.linkage2.to_numpy()
 
-
-        print(self.linkage)
-
-        print("--------")
-
-        print(self.linkage2)
-
+        self.linkage_old = self.linkage
         self.linkage = self.linkage2
+
+        for i, row in enumerate(self.linkage):
+            self.linkage[i][0] -= 1
+            self.linkage[i][1] -= 1
+
         self.linkage_stats = [{'c1': 0, 'c2': 0, 'css': 0, 'tss': 0, 'indices': set()} for _ in range(2 * self.n_data - 1)]
 
 
