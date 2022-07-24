@@ -26,20 +26,18 @@ class DendrogramCut:
         
         self.linkage_test = self.linkage
 
-        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_multilink_full.xlsx", header=None)
-        self.linkage2 = self.linkage2.round(2)
-        self.linkage2["3"] = 2
-
-
-
-        self.linkage2 = self.linkage2.to_numpy()
+        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_enanched.xlsx", header=None)
+    
+        self.linkage2 = self.linkage2.to_numpy()[1:]
 
         self.linkage_old = self.linkage
         self.linkage = self.linkage2
 
         for i, row in enumerate(self.linkage):
-            self.linkage[i][0] -= 1
-            self.linkage[i][1] -= 1
+            self.linkage[i][0] -= int(self.linkage[i][0])
+            self.linkage[i][1] -= int(self.linkage[i][0])
+
+        print(self.linkage)
 
         self.linkage_stats = [{'c1': 0, 'c2': 0, 'css': 0, 'tss': 0, 'indices': set()} for _ in range(2 * self.n_data - 1)]
 
@@ -60,8 +58,8 @@ class DendrogramCut:
         for i in range(self.n_data, 2 * self.n_data - 1):
             c1 = self.linkage_stats[i]['c1']
             c2 = self.linkage_stats[i]['c2']
-            c1_indices = np.asarray(list(self.linkage_stats[c1]['indices']))
-            c2_indices = np.asarray(list(self.linkage_stats[c2]['indices']))
+            c1_indices = np.asarray(list(self.linkage_stats[c1]['indices'])).astype(int)
+            c2_indices = np.asarray(list(self.linkage_stats[c2]['indices'])).astype(int)
 
             sample_distances = distance_matrix[c1_indices, :][:, c2_indices]
             self.linkage_stats[i]['css'] = np.sum(sample_distances ** 2)

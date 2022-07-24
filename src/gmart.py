@@ -1,3 +1,5 @@
+import pandas as pd
+
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
     inf = float("inf")
@@ -126,6 +128,12 @@ def bench_methods(data, nbClusters, methods):
             linkage_matrix = linkage(data, method)
         else:
             linkage_matrix = linkage(d, method)
+
+        print(linkage_matrix)
+        linkage_matrix = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_enanched.xlsx", header=None)
+        linkage_matrix = linkage_matrix.to_numpy()[1:]
+        print(linkage_matrix)
+
         tree = build_dict_tree(linkage_matrix)
         children_map = build_children_map(tree)
         dp, lcut = compute_dyncut(data, nbClusters, children_map)
