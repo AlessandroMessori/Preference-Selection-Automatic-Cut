@@ -5,7 +5,6 @@ import scipy.spatial
 import scipy.cluster
 import matplotlib.cm
 import plotly.graph_objs as go
-import pandas as pd
 from sklearn.metrics import silhouette_score
 
 
@@ -23,24 +22,7 @@ class DendrogramCut:
         self.distance_matrix = distance_matrix
         self.n_data = distance_matrix.shape[0]
         self.linkage = scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
-        
-        self.linkage_test = self.linkage
-
-        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_enanched.xlsx", header=None)
-    
-        self.linkage2 = self.linkage2.to_numpy()[1:]
-
-        self.linkage_old = self.linkage
-        self.linkage = self.linkage2
-
-        for i, row in enumerate(self.linkage):
-            self.linkage[i][0] -= int(self.linkage[i][0])
-            self.linkage[i][1] -= int(self.linkage[i][0])
-
-        print(self.linkage)
-
         self.linkage_stats = [{'c1': 0, 'c2': 0, 'css': 0, 'tss': 0, 'indices': set()} for _ in range(2 * self.n_data - 1)]
-
 
         for i in range(self.n_data):
             self.linkage_stats[i]['c1'] = i
@@ -58,8 +40,8 @@ class DendrogramCut:
         for i in range(self.n_data, 2 * self.n_data - 1):
             c1 = self.linkage_stats[i]['c1']
             c2 = self.linkage_stats[i]['c2']
-            c1_indices = np.asarray(list(self.linkage_stats[c1]['indices'])).astype(int)
-            c2_indices = np.asarray(list(self.linkage_stats[c2]['indices'])).astype(int)
+            c1_indices = np.asarray(list(self.linkage_stats[c1]['indices']))
+            c2_indices = np.asarray(list(self.linkage_stats[c2]['indices']))
 
             sample_distances = distance_matrix[c1_indices, :][:, c2_indices]
             self.linkage_stats[i]['css'] = np.sum(sample_distances ** 2)
@@ -95,7 +77,6 @@ class DendrogramCut:
         return self
 
     def _get_cut_nodes(self, v, k):
-        #print(k)
         if k == 1:
             yield v
         else:

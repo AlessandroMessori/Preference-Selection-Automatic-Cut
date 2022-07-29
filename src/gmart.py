@@ -1,4 +1,23 @@
-import pandas as pd
+import scipy.io
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from sklearn import datasets
+
+
+nbClusters = 4
+methods = ['single','complete','average','weighted','centroid','median','ward']
+
+temp = scipy.io.loadmat('../multilink/data/ticktoe.mat')
+#print(temp)
+X = temp["X"].tolist()
+X = list(map( lambda x: [x[0], x[1]]   ,zip(X[0], X[1])))
+
+print(X)
+
+iris = datasets.load_iris()
+print(iris.data)
 
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
@@ -115,12 +134,6 @@ def compute_flat_cut_clusters(nbClusters, linkage_matrix):
 
     return flat_clusters
 
-from sklearn import datasets
-iris = datasets.load_iris()
-X = iris.data
-Y = iris.target
-
-
 def bench_methods(data, nbClusters, methods):
     d = pdist(data)
     for method in methods:
@@ -128,17 +141,14 @@ def bench_methods(data, nbClusters, methods):
             linkage_matrix = linkage(data, method)
         else:
             linkage_matrix = linkage(d, method)
-
-        print(linkage_matrix)
-        linkage_matrix = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_enanched.xlsx", header=None)
-        linkage_matrix = linkage_matrix.to_numpy()[1:]
-        print(linkage_matrix)
-
         tree = build_dict_tree(linkage_matrix)
         children_map = build_children_map(tree)
         dp, lcut = compute_dyncut(data, nbClusters, children_map)
+
         flat_dyn_clusters = compute_flat_dyn_clusters(max(children_map), nbClusters, lcut, children_map)
         flat_cut_clusters = compute_flat_cut_clusters(nbClusters, linkage_matrix)
+
+        print(flat_cut_clusters)
 
         tot_dyn = 0
         tot_cut = 0
@@ -151,34 +161,9 @@ def bench_methods(data, nbClusters, methods):
         print("\n")
 
 
-import numpy as np
-from scipy.spatial.distance import pdist, squareform
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+X = np.array(X)
 
-nbClusters = 20
-methods = ['single','complete','average','weighted','centroid','median','ward']
+print(X)
 
-bench_methods(iris.data,nbClusters,methods)
+bench_methods(X,nbClusters,methods)
 
-def center_proximity(alpha,pt,centers):
-    dists = []
-    for center in centers:
-        dists.append(np.linalg.norm(pt-center))
-    minDist = min(dists)
-    argmin = np.argmin(dists)
-    for i in range(0,len(dists)):
-        if not i == argmin:
-            if dists[i] <= alpha*minDist:
-                return False
-    return True
-
-def prop_viol_center_proximity(alpha,data,target):
-    nb_viol = 0
-    centers = compute_centers(data,target)
-    for pt in data:
-        if not center_proximity(alpha,pt,centers):
-            nb_viol += 1
-    return nb_viol / len(target)
-
-def verif_center_proximity(alpha,data,target):
-    return prop_viol_center_proximity(alpha,data,target) == 0
