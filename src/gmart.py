@@ -6,7 +6,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from sklearn import datasets
 
 
-nbClusters = 4
+nbClusters = 3
 methods = ['single','complete','average','weighted','centroid','median','ward']
 
 temp = scipy.io.loadmat('../multilink/data/ticktoe.mat')
@@ -14,10 +14,10 @@ temp = scipy.io.loadmat('../multilink/data/ticktoe.mat')
 X = temp["X"].tolist()
 X = list(map( lambda x: [x[0], x[1]]   ,zip(X[0], X[1])))
 
-print(X)
+#print(X)
 
 iris = datasets.load_iris()
-print(iris.data)
+#print(iris.data)
 
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
@@ -134,6 +134,20 @@ def compute_flat_cut_clusters(nbClusters, linkage_matrix):
 
     return flat_clusters
 
+def get_output_cluster(points, nPoints):
+
+    clusters = []
+
+    for _ in range(nPoints):
+        clusters.append(0)
+
+    for i,cluster in enumerate(points):
+
+        for point in cluster:
+            clusters[point-1] = "C" + str(i)
+
+    return clusters    
+
 def bench_methods(data, nbClusters, methods):
     d = pdist(data)
     for method in methods:
@@ -149,6 +163,7 @@ def bench_methods(data, nbClusters, methods):
         flat_cut_clusters = compute_flat_cut_clusters(nbClusters, linkage_matrix)
 
         print(flat_cut_clusters)
+        print(get_output_cluster(flat_cut_clusters, 230))
 
         tot_dyn = 0
         tot_cut = 0
@@ -162,8 +177,6 @@ def bench_methods(data, nbClusters, methods):
 
 
 X = np.array(X)
-
-print(X)
 
 bench_methods(X,nbClusters,methods)
 
