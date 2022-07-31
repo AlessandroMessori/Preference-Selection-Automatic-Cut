@@ -4,17 +4,16 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from sklearn import datasets
+import pandas as pd
 
 
-nbClusters = 3
+nbClusters = 25
 methods = ['single','complete','average','weighted','centroid','median','ward']
 
 temp = scipy.io.loadmat('../multilink/data/ticktoe.mat')
 #print(temp)
 X = temp["X"].tolist()
-X = list(map( lambda x: [x[0], x[1]]   ,zip(X[0], X[1])))
-
-#print(X)
+X = list(map( lambda x: [x[0], x[1]],zip(X[0], X[1])))
 
 iris = datasets.load_iris()
 #print(iris.data)
@@ -148,13 +147,21 @@ def get_output_cluster(points, nPoints):
 
     return clusters    
 
-def bench_methods(data, nbClusters, methods):
-    d = pdist(data)
-    for method in methods:
-        if method in ['centroid', 'ward', 'median']:
-            linkage_matrix = linkage(data, method)
-        else:
-            linkage_matrix = linkage(d, method)
+def bench_methods(data, nbClusters):
+    for method in ["centroid"]:
+        linkage_matrix = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_enanched.xlsx", header=None)
+        linkage_matrix = linkage_matrix.to_numpy()
+
+        linkage_matrix2 = linkage(data, "centroid")
+
+        print(linkage_matrix)
+
+        print(linkage_matrix2)
+
+        linkage_matrix = np.array(list(map(lambda x: [x[0]-1,x[1]-1,x[2],x[3]], linkage_matrix)))
+
+        print(linkage_matrix)
+
         tree = build_dict_tree(linkage_matrix)
         children_map = build_children_map(tree)
         dp, lcut = compute_dyncut(data, nbClusters, children_map)
@@ -178,5 +185,5 @@ def bench_methods(data, nbClusters, methods):
 
 X = np.array(X)
 
-bench_methods(X,nbClusters,methods)
+bench_methods(X,nbClusters)
 
