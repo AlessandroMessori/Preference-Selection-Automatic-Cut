@@ -5,6 +5,7 @@ import scipy.spatial
 import scipy.cluster
 import matplotlib.cm
 import plotly.graph_objs as go
+import pandas as pd
 from sklearn.metrics import silhouette_score
 
 
@@ -13,7 +14,7 @@ class DendrogramCut:
         self.k_max = k_max
         self.method = method
             
-    def fit(self, distance_matrix):
+    def fit(self, distance_matrix, linkage):
         '''
         Build linkage_stats
             css: cross sum of square when merging c1 and c2
@@ -21,8 +22,20 @@ class DendrogramCut:
         '''
         self.distance_matrix = distance_matrix
         self.n_data = distance_matrix.shape[0]
-        self.linkage = scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
+
+        if linkage is not None:
+            linkage = linkage.round(2)
+            linkage["3"] = 2
+            linkage = linkage.to_numpy()
+
+        self.linkage = linkage if linkage is not None else scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
+        
+        for i, row in enumerate(self.linkage):
+            self.linkage[i][0] -= 1
+            self.linkage[i][1] -= 1
+
         self.linkage_stats = [{'c1': 0, 'c2': 0, 'css': 0, 'tss': 0, 'indices': set()} for _ in range(2 * self.n_data - 1)]
+
 
         for i in range(self.n_data):
             self.linkage_stats[i]['c1'] = i
@@ -77,6 +90,7 @@ class DendrogramCut:
         return self
 
     def _get_cut_nodes(self, v, k):
+        #print(k)
         if k == 1:
             yield v
         else:
