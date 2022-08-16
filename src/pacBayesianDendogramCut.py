@@ -14,7 +14,7 @@ class DendrogramCut:
         self.k_max = k_max
         self.method = method
             
-    def fit(self, distance_matrix):
+    def fit(self, distance_matrix, linkage):
         '''
         Build linkage_stats
             css: cross sum of square when merging c1 and c2
@@ -22,21 +22,14 @@ class DendrogramCut:
         '''
         self.distance_matrix = distance_matrix
         self.n_data = distance_matrix.shape[0]
-        self.linkage = scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
+
+        if linkage is not None:
+            linkage = linkage.round(2)
+            linkage["3"] = 2
+            linkage = linkage.to_numpy()
+
+        self.linkage = linkage if linkage is not None else scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
         
-        self.linkage_test = self.linkage
-
-        self.linkage2 = pd.read_excel(r"C:\Users\allem\Desktop\IACV-Project\data\dendogram_multilink_full.xlsx", header=None)
-        self.linkage2 = self.linkage2.round(2)
-        self.linkage2["3"] = 2
-
-
-
-        self.linkage2 = self.linkage2.to_numpy()
-
-        self.linkage_old = self.linkage
-        self.linkage = self.linkage2
-
         for i, row in enumerate(self.linkage):
             self.linkage[i][0] -= 1
             self.linkage[i][1] -= 1
