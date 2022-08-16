@@ -24,16 +24,11 @@ class DendrogramCut:
         self.n_data = distance_matrix.shape[0]
 
         if linkage is not None:
-            linkage = linkage.round(2)
-            linkage["3"] = 2
+            #linkage = linkage.round(2)
             linkage = linkage.to_numpy()
 
         self.linkage = linkage if linkage is not None else scipy.cluster.hierarchy.linkage(scipy.spatial.distance.squareform(distance_matrix), method=self.method, optimal_ordering=True)
         
-        for i, row in enumerate(self.linkage):
-            self.linkage[i][0] -= 1
-            self.linkage[i][1] -= 1
-
         self.linkage_stats = [{'c1': 0, 'c2': 0, 'css': 0, 'tss': 0, 'indices': set()} for _ in range(2 * self.n_data - 1)]
 
 

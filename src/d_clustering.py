@@ -19,13 +19,16 @@ def measure(x):
     return x[-1]
 
 
-def clustering(pref_m):
+def clustering(pref_m, dCut = False):
     num_of_pts = pref_m.shape[0]
     pts = range(num_of_pts)
     clusters = [[i] for i in pts]
     new_idx = pref_m.shape[0]
+    linkage_m = []
 
     pos = {i: i for i in pts}
+    nums = {i: 1 for i in pts}
+
 
     x0 = list(itertools.combinations(range(num_of_pts), 2))
     x0 = [(cl_i, cl_j, tanimoto_distance(pref_m[cl_i], pref_m[cl_j])) for cl_i, cl_j in x0]
@@ -33,8 +36,11 @@ def clustering(pref_m):
     while pref_m.shape[0] > 1:
         x0.sort(key=measure)
         cl_0, cl_1, min_distance = x0[0]
-        if min_distance >= 1:
+        if min_distance >= 1 and not dCut:
             break
+
+        # update linkage matrix
+        linkage_m.append([cl_0, cl_1, min_distance+ 0.01 * new_idx, nums[cl_0] + nums[cl_1]])
 
         new_pf = np.minimum(pref_m[pos[cl_0]], pref_m[pos[cl_1]])  # element-wise min
         new_cluster = clusters[pos[cl_0]] + clusters[pos[cl_1]]
@@ -57,6 +63,7 @@ def clustering(pref_m):
                 pos[k] -= 1
 
         pos[new_idx] = pref_m.shape[0] - 1
+        nums[new_idx] = nums[cl_0] + nums[cl_1]
 
         pts = [p for p in pts if p not in (cl_0, cl_1)]
         x0 = [(cl_i, cl_j, d) for cl_i, cl_j, d in x0
@@ -68,8 +75,8 @@ def clustering(pref_m):
         x1 = [(cl_i, cl_j, tanimoto_distance(pref_m[pos[cl_i]], pref_m[pos[cl_j]])) for cl_i, cl_j in new_comb]
         x0 += x1
 
-        print("[CLUSTERING] New cluster: " + str(new_cluster)
-              + "\t-\tTanimoto distance: " + str(min_distance))
+        #print("[CLUSTERING] New cluster: " + str(new_cluster)
+        #      + "\t-\tTanimoto distance: " + str(min_distance))
 
-    return clusters, pref_m
+    return clusters, pref_m, linkage_m
 

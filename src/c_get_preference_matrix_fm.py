@@ -4,6 +4,8 @@ import numpy as np
 from utils_sampling import localized_sampling
 
 K = 6  # the overall number of sampling is computed as K * num_of_points
+#MSS minimum sample set del datapoints necessario per stimare un modello
+#minimo 8 punti per essere un cluster
 FM_MSS = 8   # cardinality of the MSS for the fundamental matrix case
 INLIER_THRESHOLD = 3.0  # inlier threshold, needed by OpenCV RanSaC
 
@@ -39,6 +41,7 @@ def get_preference_matrix_fm(kp_src, kp_dst, good_matches, tau):
         # endregion
 
         # region Fit model
+        #trovo matrice fondamentale per trovare epipolar lines e points che descrivono la trasformazione
         F, inliers_mask = cv2.findFundamentalMat(src_pts_current, dst_pts_current, cv2.FM_7POINT,
                                                  ransacReprojThreshold=INLIER_THRESHOLD, confidence=0.999)
         # endregion
@@ -47,6 +50,7 @@ def get_preference_matrix_fm(kp_src, kp_dst, good_matches, tau):
             # region Fill column
 
             # region Compute residuals
+            #r contiene la sampson distance tra ogni punto src e dst
             r = []
             for src_p, dst_p in zip(src_pts, dst_pts):
                 src_p = np.array([src_p[0], src_p[1], 1])  # move to homogeneous coordinates
