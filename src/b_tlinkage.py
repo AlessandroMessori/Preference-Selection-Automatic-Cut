@@ -254,7 +254,7 @@ def t_linkage(tau, label_k, mode):
 
     # region Clustering
 
-    clusters = bench_methods(dst_pts, 5, methods)
+    clusters = bench_methods(dst_pts, 8, methods)
     #show_pref_matrix(pref_m, label_k)
     # endregion
     #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask_gt, label_k + " - Ground-truth")
@@ -264,7 +264,7 @@ def t_linkage(tau, label_k, mode):
     for i in range(len(clusters)):
         # region Clustering
         #clusters, pref_m = clustering(pref_m)
-        clusters_mask = get_cluster_mask(clusters[i], num_of_points, OUTLIER_THRESHOLD)
+        clusters_mask = get_cluster_mask(clusters[i], num_of_points, 45)
         # endregion
 
         # region Plot clusters
@@ -297,11 +297,11 @@ def t_linkage(tau, label_k, mode):
 
     pd.DataFrame(linkage_m).to_csv("./linkage.csv")
 
-    clusters = bench_methods(dst_pts, 6, ['tlinkage'], linkage_m)
+    clusters = bench_methods(dst_pts, 10, ['tlinkage'], linkage_m)
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters[0], num_of_points, 8)
+    clusters_mask = get_cluster_mask(clusters[0], num_of_points, 45)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Estimation")
@@ -334,7 +334,7 @@ def t_linkage(tau, label_k, mode):
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters, num_of_points, 8)
+    clusters_mask = get_cluster_mask(clusters, num_of_points, 10)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Pac Bayesian Estimation")
