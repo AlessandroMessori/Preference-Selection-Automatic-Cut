@@ -1,16 +1,22 @@
-from os import link
 import cv2
-import pandas as pd
 import numpy as np
-from scipy.cluster.hierarchy import dendrogram
+from pacBayesianDendogramCut import DendrogramCut
 from scipy.io import loadmat
-
+import pandas as pd
+import matlab.engine
 
 from c_get_preference_matrix_h import get_preference_matrix_h
 from d_clustering import clustering
 from c_get_preference_matrix_fm import get_preference_matrix_fm
 from utils_t_linkage import plotMatches, show_pref_matrix, compute_errors, plot_clusters, get_cluster_mask
-from pacBayesianDendogramCut import DendrogramCut
+
+eng = matlab.engine.start_matlab()
+eng.addpath(r'C:\Users\allem\Desktop\multilink\fun',nargout=0)
+eng.addpath(r'C:\Users\allem\Desktop\multilink\geoTools',nargout=0)
+eng.addpath(r'C:\Users\allem\Desktop\multilink\model_spec',nargout=0)
+eng.addpath(r'C:\Users\allem\Desktop\multilink\selection',nargout=0)
+eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
+eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
 OUTLIER_THRESHOLD = 8
 def compute_dyncut(data, nbClusters, children_map):
@@ -246,8 +252,12 @@ def t_linkage(tau, label_k, mode):
     # region Get preference matrix
     if mode == "FM":
         pref_m = get_preference_matrix_fm(kp_src, kp_dst, good_matches, tau)
+        modelType = "fundamental" 
     else:  # mode == "H"
         pref_m = get_preference_matrix_h(kp_src, kp_dst, good_matches, tau)
+        modelType = "homography" 
+
+    show_pref_matrix(pref_m, label_k)
 
     #show_pref_matrix(pref_m, label_k)
     # endregion
@@ -344,5 +354,43 @@ def t_linkage(tau, label_k, mode):
     me = err / num_of_pts  # compute misclassification error
     print("T_LINKAGE with Pac Bayesian")
     print("ME % = " + str(round(float(me), 4)),'\n')
+
+    gricParam = dict()
+    gricParam["lambda1"] = 1                            
+    gricParam["lambda2"] = 2                           
+    gricParam["sigma"] = 8;  
+
+    points = matlab.double(data_dict['data'].tolist())
+    prefM = matlab.double(pref_m.tolist())
+
+    dendro = eng.multiLink(points,prefM,modelType,gricParam)         
+    dendro_clean = []
+
+    for row in dendro:
+        if row[0] != 0 or row[1] != 0:
+            dendro_clean.append([row[0]-1, row[1]-1, row[2], 2])
+
+    print(dendro)
+    print("---------")
+    print(linkage_m)
+    print("---------")
+    print(dendro_clean)
+
+    clusters = bench_methods(dst_pts, 10, ['tlinkage'], dendro_clean)
+
+    #print(clusters)
+
+    clusters_mask = get_cluster_mask(clusters[0], num_of_points, 45)
+    # endregion
+    # region Plot clusters
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Estimation")
+    # endregion
+    # region Compute Misclassification Error
+    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    me = err / num_of_pts  # compute misclassification error
+    print("Multilink with GMART")
+    print("ME % = " + str(round(float(me), 4)),'\n')
+
+    
 
 
