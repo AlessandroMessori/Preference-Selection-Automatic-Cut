@@ -68,7 +68,8 @@ def t_linkage(tau, label_k, mode):
     # endregion
 
     # region Clustering
-    #clusters, pref_m = clustering(pref_m)
+    clusters, _ = clustering(pref_m)
+    print(clusters)
                                     # modelType = 'lc';  alternative  models line (l) and circle (c)
     gricParam = dict()
     gricParam["lambda1"] = 1                             # gricParam.lambda1 = 1;
@@ -88,7 +89,7 @@ def t_linkage(tau, label_k, mode):
     points = matlab.double(points)
     prefM = matlab.double(pref_m.tolist())
 
-    optsSampling = dict()
+    '''optsSampling = dict()
 
     optsSampling["m"] = 2000                             # optsSampling.m = 2000; % number of hypotheses
     optsSampling["sampling"] = "localized"               # optsSampling.sampling = 'localized';
@@ -116,9 +117,12 @@ def t_linkage(tau, label_k, mode):
     print("-------")
     print(modelType)
     print(gricParam)
+    '''
+    C = eng.multiLink(points,prefM,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
     
-    C = eng.multiLink(points,P,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
+    print(C)
     clusters_mask = get_cluster_mask(C, num_of_points, OUTLIER_THRESHOLD)
+    
     # endregion
 
     # region Plot clusters
