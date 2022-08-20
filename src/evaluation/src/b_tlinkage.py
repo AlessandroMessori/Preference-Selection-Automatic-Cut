@@ -68,23 +68,30 @@ def t_linkage(tau, label_k, mode):
     # endregion
 
     # region Clustering
-    clusters, _ = clustering(pref_m)
-    print(clusters)
+    #clusters, _ = clustering(pref_m)
+    #print(clusters)
                                     # modelType = 'lc';  alternative  models line (l) and circle (c)
     gricParam = dict()
     gricParam["lambda1"] = 1                             # gricParam.lambda1 = 1;
     gricParam["lambda2"] = 2                             # gricParam.lambda2 = 2;
     gricParam["sigma"] = OUTLIER_THRESHOLD;  
-                         # gricParam.sigma = epsi;   
-    x = []
-    y = []
+                         # gricParam.sigma = epsi; 
+     
+    x_src = []
+    y_src = []                       
+    x_dst = []
+    y_dst = []
     points = []
 
-    for pt in dst_pts:
-        x.append(pt[0])
-        y.append(pt[1])
+    for pt in src_pts:
+        x_src.append(pt[0])
+        y_src.append(pt[1])
 
-    points = [x, y]
+    for pt in dst_pts:
+        x_dst.append(pt[0])
+        y_dst.append(pt[1])
+
+    points = [x_src, y_src, x_dst, x_dst, y_dst, y_dst]
 
     points = matlab.double(points)
     prefM = matlab.double(pref_m.tolist())
@@ -118,10 +125,22 @@ def t_linkage(tau, label_k, mode):
     print(modelType)
     print(gricParam)
     '''
-    C = eng.multiLink(points,prefM,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
-    
-    print(C)
-    clusters_mask = get_cluster_mask(C, num_of_points, OUTLIER_THRESHOLD)
+    clusters_str = eng.multiLink(points,prefM,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
+    clusters_dict = dict()
+    clusters = []
+
+    print(clusters_str)
+
+    for i,p in enumerate(clusters_str):
+        el = int(p[0])
+        if el in clusters_dict:
+            clusters_dict[el].append(i)
+        else:
+            clusters_dict[el] = [i]
+
+    for key in clusters_dict:
+        clusters.append(clusters_dict[key])
+    clusters_mask = get_cluster_mask(clusters, num_of_points, OUTLIER_THRESHOLD)
     
     # endregion
 
