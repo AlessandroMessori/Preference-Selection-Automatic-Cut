@@ -3,7 +3,7 @@ from b_tlinkage import t_linkage
 if __name__ == '__main__':
     # region INPUT
     mode = 2  # [1 for Motion Segmentation | 2 for Plane Segmentation]
-    k = 16    # [k is the image-pair index; select a value from 0 to 18]
+    k = 5  # [k is the image-pair index; select a value from 0 to 18]
     # endregion
 
     if mode == 1:

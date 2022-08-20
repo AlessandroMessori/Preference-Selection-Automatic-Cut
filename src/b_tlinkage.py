@@ -151,7 +151,8 @@ Y = iris.target
 def bench_methods(data, nbClusters, methods, t_linkage=None):
     # data una riga di una matrice calcola la distanza di quella riga con ogni altra
     # riga
-    devede = list()
+    flat_cut_clusters_list = list()
+    flat_dyn_clusters_list = list()
     d = pdist(data)
     for method in methods:
         if method in ['centroid', 'ward', 'median']:
@@ -170,14 +171,19 @@ def bench_methods(data, nbClusters, methods, t_linkage=None):
         tot_dyn = 0
         tot_cut = 0
         for i in range(0, nbClusters):
-            tot_dyn += get_var(data, flat_dyn_clusters[i])
-            tot_cut += get_var(data, flat_cut_clusters[i])
+
+            if i < len(flat_dyn_clusters):
+                tot_dyn += get_var(data, flat_dyn_clusters[i])
+
+            if i < len(flat_cut_clusters):
+                tot_cut += get_var(data, flat_cut_clusters[i])
 
         #print("method:", method)
         #print("intra-variance:", "(DP)", tot_dyn, "\t(cst height)", tot_cut)
         #print("\n")
-        devede.append(flat_dyn_clusters)
-    return devede
+        flat_dyn_clusters_list.append(flat_dyn_clusters)
+        flat_cut_clusters_list.append(flat_cut_clusters)
+    return flat_dyn_clusters_list, flat_cut_clusters_list
 
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
@@ -185,8 +191,6 @@ from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 
 nbClusters = 20
 methods = ['single','complete','average','weighted','centroid','median','ward']
-
-#bench_methods(iris.data,nbClusters,methods)
 
 def center_proximity(alpha,pt,centers):
     dists = []
@@ -264,17 +268,17 @@ def t_linkage(tau, label_k, mode):
 
     # region Clustering
 
-    clusters = bench_methods(dst_pts, 8, methods)
+    clusters_dyn, clusters_cut = bench_methods(dst_pts, 8, methods)
     #show_pref_matrix(pref_m, label_k)
     # endregion
     #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask_gt, label_k + " - Ground-truth")
 
     #clusters = []
 
-    for i in range(len(clusters)):
+    for i in range(len(clusters_dyn)):
         # region Clustering
         #clusters, pref_m = clustering(pref_m)
-        clusters_mask = get_cluster_mask(clusters[i], num_of_points, 45)
+        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, 45)
         # endregion
 
         # region Plot clusters
@@ -283,7 +287,21 @@ def t_linkage(tau, label_k, mode):
         # region Compute Misclassification Error
         err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
         me = err / num_of_pts  # compute misclassification error
-        print(str(methods[i]))
+        print(str(methods[i] + "  dyn"))
+        print("ME % = " + str(round(float(me), 4)),'\n')
+        # endregion
+        # region Clustering
+        #clusters, pref_m = clustering(pref_m)
+        clusters_mask = get_cluster_mask(clusters_cut[i], num_of_points, 45)
+        # endregion
+
+        # region Plot clusters
+        #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Estimation")
+        # endregion
+        # region Compute Misclassification Error
+        err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+        me = err / num_of_pts  # compute misclassification error
+        print(str(methods[i] + "  CUT"))
         print("ME % = " + str(round(float(me), 4)),'\n')
         # endregion
 
@@ -298,32 +316,42 @@ def t_linkage(tau, label_k, mode):
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print('Prof')
+    print('T_Linkage')
     print("ME % = " + str(round(float(me), 4)), '\n')
     # endregion
 
     #print(len(dst_pts))
-    clusters, pref_m, linkage_m = clustering(pref_m, dCut = True)
+    clusters, _, linkage_m = clustering(pref_m, dCut = True)
 
     pd.DataFrame(linkage_m).to_csv("./linkage.csv")
 
-    clusters = bench_methods(dst_pts, 10, ['tlinkage'], linkage_m)
+    clusters_dyn, clusters_cut = bench_methods(dst_pts, 10, ['tlinkage'], linkage_m)
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters[0], num_of_points, 45)
+    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, 42)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Estimation")
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Dyn Estimation")
     # endregion
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("T_LINKAGE with GMART")
+    print("T_LINKAGE with GMART DYN")
     print("ME % = " + str(round(float(me), 4)),'\n')
 
+    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, 42)
+    # endregion
+    # region Plot clusters
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Flat Estimation")
+    # endregion
+    # region Compute Misclassification Error
+    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    me = err / num_of_pts  # compute misclassification error
+    print("T_LINKAGE with GMART CUT")
+    print("ME % = " + str(round(float(me), 4)),'\n')
 
-    dist = pdist(dst_pts)
+    '''dist = pdist(dst_pts)
     dist = squareform(dist)
     df_linkage = pd.DataFrame(linkage_m)
     model = DendrogramCut(k_max=230, method='average').fit(dist, df_linkage)
@@ -344,7 +372,7 @@ def t_linkage(tau, label_k, mode):
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters, num_of_points, 10)
+    clusters_mask = get_cluster_mask(clusters, num_of_points, 42)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Pac Bayesian Estimation")
@@ -353,7 +381,7 @@ def t_linkage(tau, label_k, mode):
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
     print("T_LINKAGE with Pac Bayesian")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    print("ME % = " + str(round(float(me), 4)),'\n')'''
 
     gricParam = dict()
     gricParam["lambda1"] = 1                            
@@ -363,34 +391,107 @@ def t_linkage(tau, label_k, mode):
     points = matlab.double(data_dict['data'].tolist())
     prefM = matlab.double(pref_m.tolist())
 
-    dendro = eng.multiLink(points,prefM,modelType,gricParam)         
-    dendro_clean = []
+    clusters_str = eng.multiLink(points,prefM,modelType,gricParam)  
+    clusters_dict = dict()
+    clusters = []
 
-    for row in dendro:
-        if row[0] != 0 or row[1] != 0:
-            dendro_clean.append([row[0]-1, row[1]-1, row[2], 2])
+    for i,p in enumerate(clusters_str):
+        p = str(p)
+        if p in clusters_dict:
+            clusters_dict[p].append(i)
+        else:
+            clusters_dict[p] = [i]
 
-    print(dendro)
-    print("---------")
-    print(linkage_m)
-    print("---------")
-    print(dendro_clean)
-
-    clusters = bench_methods(dst_pts, 10, ['tlinkage'], dendro_clean)
+    for key in clusters_dict:
+        clusters.append(clusters_dict[key])
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters[0], num_of_points, 45)
+    clusters_mask = get_cluster_mask(clusters, num_of_points, 20)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Estimation")
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink Estimation")
     # endregion
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink with GMART")
+    print("Multilink")
     print("ME % = " + str(round(float(me), 4)),'\n')
 
+
+    dendro = eng.multiLinkMock(points,prefM,modelType,gricParam)         
+    dendro_clean = []
+    nums = {i: 1 for i in range(num_of_points)}
+    
+    for i,row in enumerate(dendro):
+        if row[0] != 0 or row[1] != 0:
+            index_i = int(row[0]-1)
+            index_j = int(row[1]-1)
+            nums[num_of_points+i] = nums[index_i] + nums[index_j]
+            dendro_clean.append([index_i, index_j, row[2]+0.00001*i, nums[num_of_points+i]])
+
+    #print(linkage_m)
+    #print("---------")
+    #print(dendro_clean)
+
+
+    clusters_dyn, clusters_cut = bench_methods(dst_pts, 10, ['multilink'], dendro_clean)
+
+    #print(clusters)
+
+    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, 8)
+    # endregion
+    # region Plot clusters
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Dyn Estimation")
+    # endregion
+    # region Compute Misclassification Error
+    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    me = err / num_of_pts  # compute misclassification error
+    print("Multilink with GMART DYN")
+    print("ME % = " + str(round(float(me), 4)),'\n')
+
+    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, 8)
+    # endregion
+    # region Plot clusters
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Cut Estimation")
+    # endregion
+    # region Compute Misclassification Error
+    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    me = err / num_of_pts  # compute misclassification error
+    print("Multilink with GMART CUT")
+    print("ME % = " + str(round(float(me), 4)),'\n')
+    
+    '''dist = pdist(dst_pts)
+    dist = squareform(dist)
+    df_linkage = pd.DataFrame(dendro_clean)
+    model = DendrogramCut(k_max=500, method='average').fit(dist, df_linkage)
+    model.pac_bayesian_cut()
+
+    clusters_str = dendrogram(model.linkage, no_plot=True)['color_list']
+    clusters_dict = dict()
+    clusters = []
+
+    for i,p in enumerate(clusters_str):
+        if p in clusters_dict:
+            clusters_dict[p].append(i)
+        else:
+            clusters_dict[p] = [i]
+
+    for key in clusters_dict:
+        clusters.append(clusters_dict[key])
+
+    #print(clusters)
+
+    clusters_mask = get_cluster_mask(clusters, num_of_points, 20)
+    # endregion
+    # region Plot clusters
+    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Pac Bayesian Estimation")
+    # endregion
+    # region Compute Misclassification Error
+    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    me = err / num_of_pts  # compute misclassification error
+    print("Multilink with Pac Bayesian")
+    print("ME % = " + str(round(float(me), 4)),'\n')'''
     
 
 
