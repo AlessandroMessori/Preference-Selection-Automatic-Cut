@@ -19,6 +19,7 @@ eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
 OUTLIER_THRESHOLD = 8
+OUTLIER_THRESHOLD_GMART = 37
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
     inf = float("inf")
@@ -278,7 +279,7 @@ def t_linkage(tau, label_k, mode):
     for i in range(len(clusters_dyn)):
         # region Clustering
         #clusters, pref_m = clustering(pref_m)
-        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, 45)
+        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, OUTLIER_THRESHOLD)
         # endregion
 
         # region Plot clusters
@@ -292,7 +293,7 @@ def t_linkage(tau, label_k, mode):
         # endregion
         # region Clustering
         #clusters, pref_m = clustering(pref_m)
-        clusters_mask = get_cluster_mask(clusters_cut[i], num_of_points, 45)
+        clusters_mask = get_cluster_mask(clusters_cut[i], num_of_points, OUTLIER_THRESHOLD)
         # endregion
 
         # region Plot clusters
@@ -329,7 +330,7 @@ def t_linkage(tau, label_k, mode):
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, 42)
+    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Dyn Estimation")
@@ -337,10 +338,10 @@ def t_linkage(tau, label_k, mode):
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("T_LINKAGE with GMART DYN")
+    print("T_Linkage with GMART DYN")
     print("ME % = " + str(round(float(me), 4)),'\n')
 
-    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, 42)
+    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Flat Estimation")
@@ -348,7 +349,7 @@ def t_linkage(tau, label_k, mode):
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("T_LINKAGE with GMART CUT")
+    print("T_Linkage with GMART CUT")
     print("ME % = " + str(round(float(me), 4)),'\n')
 
     '''dist = pdist(dst_pts)
@@ -407,7 +408,7 @@ def t_linkage(tau, label_k, mode):
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters, num_of_points, 20)
+    clusters_mask = get_cluster_mask(clusters, num_of_points, OUTLIER_THRESHOLD)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink Estimation")
@@ -439,7 +440,7 @@ def t_linkage(tau, label_k, mode):
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, 8)
+    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Dyn Estimation")
@@ -450,7 +451,7 @@ def t_linkage(tau, label_k, mode):
     print("Multilink with GMART DYN")
     print("ME % = " + str(round(float(me), 4)),'\n')
 
-    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, 8)
+    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
     plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Cut Estimation")
