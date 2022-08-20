@@ -76,58 +76,23 @@ def t_linkage(tau, label_k, mode):
     gricParam["lambda2"] = 2                             # gricParam.lambda2 = 2;
     gricParam["sigma"] = OUTLIER_THRESHOLD;  
                          # gricParam.sigma = epsi; 
-     
-    x_src = []
-    y_src = []                       
-    x_dst = []
-    y_dst = []
-    points = []
 
-    for pt in src_pts:
-        x_src.append(pt[0])
-        y_src.append(pt[1])
-
-    for pt in dst_pts:
-        x_dst.append(pt[0])
-        y_dst.append(pt[1])
-
-    points = [x_src, y_src, x_dst, x_dst, y_dst, y_dst]
-
-    points = matlab.double(points)
+    points = matlab.double(data_dict['data'].tolist())
     prefM = matlab.double(pref_m.tolist())
 
-    '''optsSampling = dict()
+    dendro = eng.multiLink(points,prefM,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
+    dendro_clean = []
 
-    optsSampling["m"] = 2000                             # optsSampling.m = 2000; % number of hypotheses
-    optsSampling["sampling"] = "localized"               # optsSampling.sampling = 'localized';
-    optsSampling["robust"] = "on"                        # optsSampling.robust = 'on';
-    optsSampling["voting"] = "gauss"                     # optsSampling.voting = 'gauss';
+    for row in dendro:
+        if row[0] != 0 or row[1] != 0:
+            dendro_clean.append([row[0]-1, row[1]-1, row[2]])
+    
+    
 
-    # sampling lines
-    optsl = optsSampling                                 # optsl = optsSampling;
-    optsl["model"] = modelType                           # optsl.model = 'line';
-    print(points)
-    Sl = eng.computeResi(points, optsl);                # Sl = computeResi(X,optsl);
-
-    # preference computation
-    epsi = 2e-2; # inlier threhsold                      # epsi = 2e-2; % inlier threhsold                       
-    Sl["P"] = eng.resiToP(Sl["R"], epsi);                # [Sl.P] = resiToP(Sl.R,epsi);
-    P = np.concatenate([np.array(Sl["P"])], axis=1)
-    P = matlab.double(P.tolist())
-
-    print(len(points))
-    print("-------")
-    print(len(points[0]))
-    print("-------")
-    print(len(P))
-    print(len(P[0]))
-    print("-------")
-    print(modelType)
-    print(gricParam)
-    '''
-    clusters_str = eng.multiLink(points,prefM,modelType,gricParam)           # C = multiLink(X,P,modelType,gricParam);
-    clusters_dict = dict()
+    '''clusters_dict = dict()
     clusters = []
+
+    print(dendro)
 
     print(clusters_str)
 
@@ -153,6 +118,6 @@ def t_linkage(tau, label_k, mode):
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
     print("ME % = " + str(round(float(me), 4)))
-    # endregion
+    # endregion'''
 
 
