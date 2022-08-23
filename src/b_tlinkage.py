@@ -19,7 +19,9 @@ eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
 OUTLIER_THRESHOLD = 8
-OUTLIER_THRESHOLD_GMART = 37
+OUTLIER_THRESHOLD_GMART = 40
+NUMBER_OF_CLUSTERS = 50
+
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
     inf = float("inf")
@@ -279,7 +281,7 @@ def t_linkage(tau, label_k, mode):
     for i in range(len(clusters_dyn)):
         # region Clustering
         #clusters, pref_m = clustering(pref_m)
-        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, OUTLIER_THRESHOLD)
+        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, 25)
         # endregion
 
         # region Plot clusters
@@ -326,7 +328,7 @@ def t_linkage(tau, label_k, mode):
 
     pd.DataFrame(linkage_m).to_csv("./linkage.csv")
 
-    clusters_dyn, clusters_cut = bench_methods(dst_pts, 10, ['tlinkage'], linkage_m)
+    clusters_dyn, clusters_cut = bench_methods(dst_pts, NUMBER_OF_CLUSTERS, ['tlinkage'], linkage_m)
 
     #print(clusters)
 
@@ -436,7 +438,7 @@ def t_linkage(tau, label_k, mode):
     #print(dendro_clean)
 
 
-    clusters_dyn, clusters_cut = bench_methods(dst_pts, 10, ['multilink'], dendro_clean)
+    clusters_dyn, clusters_cut = bench_methods(dst_pts, NUMBER_OF_CLUSTERS, ['multilink'], dendro_clean)
 
     #print(clusters)
 
