@@ -10,6 +10,7 @@ from d_clustering import clustering
 from c_get_preference_matrix_fm import get_preference_matrix_fm
 from utils_t_linkage import plotMatches, show_pref_matrix, compute_errors, plot_clusters, get_cluster_mask
 
+
 eng = matlab.engine.start_matlab()
 eng.addpath(r'C:\Users\allem\Desktop\multilink\fun',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink\geoTools',nargout=0)
@@ -19,15 +20,12 @@ eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
 OUTLIER_THRESHOLD = 8
-OUTLIER_THRESHOLD_GMART = 40
-NUMBER_OF_CLUSTERS = 50
-
+OUTLIER_THRESHOLD_GMART = 37
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
     inf = float("inf")
     dp = np.zeros((nbClusters + 1, nbVertices + 1)) + inf
     lcut = np.zeros((nbClusters + 1, nbVertices + 1))
-
 
     for i in range(0, dp.shape[1]):
         #dato un cluster esempio 156,
@@ -219,13 +217,14 @@ def verif_center_proximity(alpha,data,target):
     return prop_viol_center_proximity(alpha,data,target) == 0
 
 
-def t_linkage(tau, label_k, mode):
+def t_linkage(tau, label_k, mode, OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
 
+    #list[0] = T_Linkage, list[1] = T_Linkage with GMART DYN, list[2] = T_Linkage with GMART COSTANT CUT
+    errors_list = []
     # region Get image path from label_k
     img_i = "../resources/adel" + mode + "_imgs/" + label_k + "1.png"
     img_j = "../resources/adel" + mode + "_imgs/" + label_k + "2.png"
     # endregion
-
     # region Load data points
     data_dict = loadmat("../resources/adel" + mode + "/" + label_k + ".mat")
     points = data_dict['data']
@@ -256,32 +255,45 @@ def t_linkage(tau, label_k, mode):
 
     # | ############################################################################################################# |
 
+        
     # region Get preference matrix
     if mode == "FM":
-        pref_m = get_preference_matrix_fm(kp_src, kp_dst, good_matches, tau)
+        while True:
+            try:
+                pref_m = get_preference_matrix_fm(kp_src, kp_dst, good_matches, tau)
+            except:
+                print('there was an error computing the svd, trying again…')
+                continue
+            break
         modelType = "fundamental" 
     else:  # mode == "H"
-        pref_m = get_preference_matrix_h(kp_src, kp_dst, good_matches, tau)
+        while True:
+            try:
+                pref_m = get_preference_matrix_h(kp_src, kp_dst, good_matches, tau)
+            except:
+                print('there was an error computing the svd, trying again…')
+                continue
+            break   
         modelType = "homography" 
 
-    show_pref_matrix(pref_m, label_k)
+    #show_pref_matrix(pref_m, label_k)
 
     #show_pref_matrix(pref_m, label_k)
     # endregion
 
     # region Clustering
 
-    clusters_dyn, clusters_cut = bench_methods(dst_pts, 8, methods)
+    #clusters_dyn, clusters_cut = bench_methods(dst_pts, 8, methods)
     #show_pref_matrix(pref_m, label_k)
     # endregion
     #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask_gt, label_k + " - Ground-truth")
 
     #clusters = []
 
-    for i in range(len(clusters_dyn)):
+    '''for i in range(len(clusters_dyn)):
         # region Clustering
         #clusters, pref_m = clustering(pref_m)
-        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, 25)
+        clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, OUTLIER_THRESHOLD)
         # endregion
 
         # region Plot clusters
@@ -308,51 +320,57 @@ def t_linkage(tau, label_k, mode):
         print("ME % = " + str(round(float(me), 4)),'\n')
         # endregion
 
+    '''
     clusters, _, _ = clustering(pref_m)
   
     clusters_mask = get_cluster_mask(clusters, num_of_points, OUTLIER_THRESHOLD)
     # endregion
 
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - T-Linkage Estimation")
+    #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - T-Linkage Estimation")
     # endregion
     # region Compute Misclassification Error
-    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
-    me = err / num_of_pts  # compute misclassification error
-    print('T_Linkage')
-    print("ME % = " + str(round(float(me), 4)), '\n')
+    #err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    #me = err / num_of_pts  # compute misclassification error
+    #print('T_Linkage')
+    #print("ME % = " + str(round(float(me), 4)), '\n')
+    #errors_list.append(round(float(me), 4))
     # endregion
 
     #print(len(dst_pts))
-    clusters, _, linkage_m = clustering(pref_m, dCut = True)
+    #clusters, _, linkage_m = clustering(pref_m, dCut = True)
 
-    pd.DataFrame(linkage_m).to_csv("./linkage.csv")
+    #pd.DataFrame(linkage_m).to_csv("./linkage.csv")
 
-    clusters_dyn, clusters_cut = bench_methods(dst_pts, NUMBER_OF_CLUSTERS, ['tlinkage'], linkage_m)
+    #clusters_dyn, clusters_cut = bench_methods(dst_pts, NUMBER_OF_CLUSTER, ['tlinkage'], linkage_m)
 
     #print(clusters)
 
-    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
+    #clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Dyn Estimation")
+    #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Dyn Estimation")
     # endregion
     # region Compute Misclassification Error
-    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
-    me = err / num_of_pts  # compute misclassification error
-    print("T_Linkage with GMART DYN")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    #err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    #me = err / num_of_pts  # compute misclassification error
+    #print("T_Linkage with GMART DYN")
+    #print("ME % = " + str(round(float(me), 4)),'\n')
+    #errors_list.append(round(float(me), 4))
 
-    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
+
+    #clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Flat Estimation")
+    #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Flat Estimation")
     # endregion
     # region Compute Misclassification Error
-    err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
-    me = err / num_of_pts  # compute misclassification error
-    print("T_Linkage with GMART CUT")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    #err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
+    #me = err / num_of_pts  # compute misclassification error
+    #print("T_Linkage with GMART COSTANT CUT")
+    #print("ME % = " + str(round(float(me), 4)),'\n')
+    #errors_list.append(round(float(me), 4))
+
 
     '''dist = pdist(dst_pts)
     dist = squareform(dist)
@@ -413,13 +431,14 @@ def t_linkage(tau, label_k, mode):
     clusters_mask = get_cluster_mask(clusters, num_of_points, OUTLIER_THRESHOLD)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink Estimation")
+    #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink Estimation")
     # endregion
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    #print("Multilink")
+    #print("ME % = " + str(round(float(me), 4)),'\n')
+    errors_list.append(round(float(me), 4))
 
 
     dendro = eng.multiLinkMock(points,prefM,modelType,gricParam)         
@@ -438,31 +457,33 @@ def t_linkage(tau, label_k, mode):
     #print(dendro_clean)
 
 
-    clusters_dyn, clusters_cut = bench_methods(dst_pts, NUMBER_OF_CLUSTERS, ['multilink'], dendro_clean)
+    clusters_dyn, clusters_cut = bench_methods(dst_pts, NUMBER_OF_CLUSTER , ['multilink'], dendro_clean)
 
     #print(clusters)
 
     clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Dyn Estimation")
+    #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Dyn Estimation")
     # endregion
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink with GMART DYN")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    #print("Multilink with GMART DYN")
+    #print("ME % = " + str(round(float(me), 4)),'\n')
+    errors_list.append(round(float(me), 4))
 
     clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
     # endregion
     # region Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Cut Estimation")
+    #plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Cut Estimation")
     # endregion
     # region Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink with GMART CUT")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    #print("Multilink with GMART CUT")
+    #print("ME % = " + str(round(float(me), 4)),'\n')
+    errors_list.append(round(float(me), 4))
     
     '''dist = pdist(dst_pts)
     dist = squareform(dist)
@@ -495,6 +516,6 @@ def t_linkage(tau, label_k, mode):
     me = err / num_of_pts  # compute misclassification error
     print("Multilink with Pac Bayesian")
     print("ME % = " + str(round(float(me), 4)),'\n')'''
-    
+    return errors_list
 
 
