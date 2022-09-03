@@ -23,8 +23,8 @@ eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
 OUTLIER_THRESHOLD = 8
-
 DISPLAY = False
+PRINT = False
 
 def load_points(path):
     data_dict = loadmat(path)
@@ -51,7 +51,7 @@ def get_preference_matrix(mode, kp_src, kp_dst, good_matches, tau):
             try:
                 pref_m = get_preference_matrix_fm(kp_src, kp_dst, good_matches, tau)
             except:
-                print('there was an error computing the svd, trying again…')
+                PRINT and print('there was an error computing the svd, trying again…')
                 continue
             break
         modelType = "fundamental" 
@@ -60,7 +60,7 @@ def get_preference_matrix(mode, kp_src, kp_dst, good_matches, tau):
             try:
                 pref_m = get_preference_matrix_h(kp_src, kp_dst, good_matches, tau)
             except:
-                print('there was an error computing the svd, trying again…')
+                PRINT and print('there was an error computing the svd, trying again…')
                 continue
             break   
         modelType = "homography" 
@@ -84,8 +84,8 @@ def evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k
         # Compute Misclassification Error
         err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
         me = err / num_of_pts  # compute misclassification error
-        print(str(methods[i] + "  dyn"))
-        print("ME % = " + str(round(float(me), 4)),'\n')
+        PRINT and print(str(methods[i] + "  dyn"))
+        PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
         
         # Clustering
         clusters_mask = get_cluster_mask(clusters_cut[i], num_of_points, OUTLIER_THRESHOLD)
@@ -96,8 +96,8 @@ def evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k
         # Compute Misclassification Error
         err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
         me = err / num_of_pts  # compute misclassification error
-        print(str(methods[i] + "  CUT"))
-        print("ME % = " + str(round(float(me), 4)),'\n')
+        PRINT and print(str(methods[i] + "  CUT"))
+        PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
         
 def getMultilinkParams(data_dict, pref_m):
     gricParam = dict()
@@ -120,9 +120,9 @@ def evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print('T_Linkage')
-    print("ME % = " + str(round(float(me), 4)), '\n')
-    #errors_list.append(round(float(me), 4))
+    PRINT and print('T_Linkage')
+    PRINT and print("ME % = " + str(round(float(me), 4)), '\n')
+    return round(float(me), 4)
 
 def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt,nb_clusters, outlier_th):
     _, _, linkage_m = clustering(pref_m, dCut = True)
@@ -137,9 +137,9 @@ def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("T_Linkage with GMART DYN")
-    print("ME % = " + str(round(float(me), 4)),'\n')
-    #errors_list.append(round(float(me), 4))
+    PRINT and print("T_Linkage with GMART DYN")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+    error_dyn = round(float(me), 4)
 
     clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, outlier_th)
     
@@ -149,9 +149,11 @@ def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("T_Linkage with GMART COSTANT CUT")
-    print("ME % = " + str(round(float(me), 4)),'\n')
-    #errors_list.append(round(float(me), 4))
+    PRINT and print("T_Linkage with GMART COSTANT CUT")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+    error_cos = round(float(me), 4)
+
+    return error_dyn, error_cos
 
 def evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, outlier_th):
     _, _, linkage_m = clustering(pref_m, dCut = True)
@@ -182,8 +184,10 @@ def evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("T_LINKAGE with Pac Bayesian")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    PRINT and print("T_LINKAGE with Pac Bayesian")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+
+    return round(float(me), 4)
 
 def evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam):
 
@@ -209,9 +213,10 @@ def evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clu
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink")
-    print("ME % = " + str(round(float(me), 4)),'\n')
-    # errors_list.append(round(float(me), 4))
+    PRINT and print("Multilink")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+    
+    return round(float(me), 4)
 
 def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, nb_clusters,outlier_th):
     dendro = eng.multiLinkMock(points,prefM,modelType,gricParam)         
@@ -236,9 +241,9 @@ def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink with GMART DYN")
-    print("ME % = " + str(round(float(me), 4)),'\n')
-    #errors_list.append(round(float(me), 4))
+    PRINT and print("Multilink with GMART DYN")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+    err_dyn = round(float(me), 4)
 
     clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, outlier_th)
     
@@ -248,9 +253,11 @@ def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink with GMART CUT")
-    print("ME % = " + str(round(float(me), 4)),'\n')
-    #errors_list.append(round(float(me), 4))
+    PRINT and print("Multilink with GMART CUT")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+    err_cos = round(float(me), 4)
+
+    return err_dyn, err_cos
 
 def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam,outlier_th):
 
@@ -292,12 +299,14 @@ def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i,
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    print("Multilink with Pac Bayesian")
-    print("ME % = " + str(round(float(me), 4)),'\n')
+    PRINT and print("Multilink with Pac Bayesian")
+    PRINT and print("ME % = " + str(round(float(me), 4)),'\n')
+
+    return round(float(me), 4)
 
 def evaluation(tau, label_k, mode, algorythms ,OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
 
-    errors_list = []
+    errors_dict = dict()
     # Get image path from label_k
     img_i = "../resources/adel" + mode + "_imgs/" + label_k + "1.png"
     img_j = "../resources/adel" + mode + "_imgs/" + label_k + "2.png"
@@ -320,39 +329,47 @@ def evaluation(tau, label_k, mode, algorythms ,OUTLIER_THRESHOLD_GMART,NUMBER_OF
     DISPLAY and show_pref_matrix(pref_m, label_k)
     DISPLAY and show_pref_matrix(pref_m, label_k)
     
-    
     # Clustering with classic clusteting methods + gmart
     if "base" in algorythms:
-        evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+        err = evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+        #ConnectionRefusedError["base"] = 
 
     # Clustering with TLinkage 
     if "tlinkage" in algorythms:
-        evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+        err = evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+        errors_dict["tlinkage"] = err
 
     # Clustering with TLinkage and Gmart
     if "tlinkage-gmart" in algorythms:
-        evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
+        err_dyn, err_cos = evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
+        errors_dict["tlinkage-gmart-dyn"] = err_dyn
+        errors_dict["tlinkage-gmart-cos"] = err_cos
 
     # Clustering with TLinkage and Pac Bayesian Cut
     if "tlinkage-pac" in algorythms:
-        evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, OUTLIER_THRESHOLD_GMART)
+        err = evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, OUTLIER_THRESHOLD_GMART)
+        errors_dict["tlinkage-pac"] = err
 
     if "multilink" in algorythms or "multilink-gmart" in algorythms or "multilink-pac" in algorythms:
         points, prefM, gricParam = getMultilinkParams(data_dict, pref_m)
 
     # Clustering with Multilink
     if "multilink" in algorythms:
-        evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam)
+        err = evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam)
+        errors_dict["multilink"] = err
 
     # Clustering with Multilink and Gmart
     if "multilink-gmart" in algorythms:
-        evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
+        err_dyn, err_cos = evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
+        errors_dict["multilink-gmart-dyn"] = err_dyn
+        errors_dict["multilink-gmart-cos"] = err_cos
 
     # Clustering with Multilink and Pac Baysian Cut
-    #if "multilink-pac" in algorythms:
-    #   evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam, OUTLIER_THRESHOLD_GMART)
-    
-    return errors_list
+    if "multilink-pac" in algorythms:
+        err = evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam, OUTLIER_THRESHOLD_GMART)
+        errors_dict["multilink-pac"] = err
+
+    return errors_dict
 
 
  

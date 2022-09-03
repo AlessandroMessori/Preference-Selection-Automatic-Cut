@@ -4,7 +4,8 @@ from tLinkage.b_tlinkage import evaluation
 if __name__ == '__main__':
     # region INPUT
     mode = 2  # [1 for Motion Segmentation | 2 for Plane Segmentation]
-    algorythms = ["base","tlinkage","tlinkage-gmart","tlinkage-pac","multilink","multilink-gmart"]
+    algorythms = ["base","tlinkage","tlinkage-gmart","multilink","multilink-gmart"]
+    errors = ["tlinkage","tlinkage-gmart-dyn","tlinkage-gmart-cos","multilink","multilink-gmart-dyn","multilink-gmart-cos"]
     iterations = 5
     # endregion
     if mode == 1:
@@ -16,58 +17,50 @@ if __name__ == '__main__':
 
         tau = [14, 14, 3, 30, 14, 30, 14, 14, 14, 30, 14, 14, 14, 14, 14, 30, 14, 14, 14]
         parameters = [[40, 50], [40, 40], [40, 30], [40, 20], [40, 15], [40, 10], [40, 5], [40, 2]]
-        t_link_err = []
-        t_link_gmart_dyn_err = []
-        t_link_gmart_cos_err = []
+        err_dict = {}
         images_err_list = []
         for l in range(len(labels)):
-            images_err_list.append([])
+            images_err_list.append({})
 
-        a = []
-        b = []
-        c = []
         for par in range(len(parameters)):
             print("Parameters : ", parameters[par])
             for k in range(len(labels)):
                 print('Image number: ', k)
-                t_link_err.clear()
-                t_link_gmart_dyn_err.clear()
-                t_link_gmart_cos_err.clear()
+                err_dict = dict()
 
                 for i in range(iterations):
                     #print('Iteration number: ', i)
-                    errors_list = evaluation(tau[k], labels[k], "FM",
+                    curr_errors_dict = evaluation(tau[k], labels[k], "FM",
                                             OUTLIER_THRESHOLD_GMART=parameters[par][0],
                                             NUMBER_OF_CLUSTER=parameters[par][1],
                                             algorythms=algorythms)
-                    t_link_err.append(errors_list[0])
-                    t_link_gmart_dyn_err.append(errors_list[1])
-                    t_link_gmart_cos_err.append(errors_list[2])
 
-                '''print('Mean error for t_linkage is: ', np.sum(t_link_err) / iterations)
-                print('Mean error for t_linkage + gmart_dyn is: ', np.sum(t_link_gmart_dyn_err) / iterations)
-                print('Mean error for t_linkage gmart_cos is: ', np.sum(t_link_gmart_cos_err) / iterations)
-                print('\n')'''
+                    for key in curr_errors_dict:
+                        if key in err_dict:
+                            err_dict[key].append(curr_errors_dict[key])
+                        else:
+                            err_dict[key] = [curr_errors_dict[key]]
 
-                images_err_list[k].append(np.sum(t_link_err) / iterations)
-                images_err_list[k].append(np.sum(t_link_gmart_dyn_err) / iterations)
-                images_err_list[k].append(np.sum(t_link_gmart_cos_err) / iterations)
+                for key in err_dict:
+                    err = np.sum(err_dict[key]) / iterations
+                    print('Mean error for ', key, ' is: ', np.round(err,4))
+                    images_err_list[k][key] = err
+                print('\n')
 
-            a.clear()
-            b.clear()
-            c.clear()
+            fullErrors = dict()
+            for key in errors:
+                fullErrors[key] = []
 
             for i in range(np.shape(images_err_list)[0]):
-                a.append(images_err_list[i][0])
-                b.append(images_err_list[i][1])
-                c.append(images_err_list[i][2])
+                for key in errors:
+                    fullErrors[key].append(images_err_list[i][key])
 
-            print('Mean error for t_linkage for the entire dataset is: ', np.sum(a) / len(images_err_list))
-            print('Mean error for t_linkage + gmart_dyn for the entire dataset is: ', np.sum(b) / len(images_err_list))
-            print('Mean error for t_linkage gmart_cos for the entire dataset is: ', np.sum(c) / len(images_err_list))
+            for key in err_dict:
+                    print('Mean error for ', key,' for the entire dataset is: ', np.round(np.sum(fullErrors[key]) / len(images_err_list),4))
+            print('\n')
 
             for l in range(len(labels)):
-                images_err_list[l].clear()
+                images_err_list[l] = dict()
 
     # endregion
     if mode == 2:
@@ -81,57 +74,47 @@ if __name__ == '__main__':
         tau = [60, 50, 50, 50, 15, 25, 20, 35, 25, 25, 25, 20, 4, 25, 10, 50, 35, 50, 35]
         parameters = [[35,90],[32,90],[27,90],[25,90]]
 
-        t_link_err = []
-        t_link_gmart_dyn_err = []
-        t_link_gmart_cos_err = []
+        err_dict = {}
         images_err_list = []
         for l in range(len(labels)):
-            images_err_list.append([])
-
-        a = []
-        b = []
-        c = []
+            images_err_list.append({})
+            
         for par in range(len(parameters)):
             print("Parameters : ", parameters[par])
-
             for k in range(len(labels)):
                 print('Image number: ', k)
+                err_dict = dict()
 
                 for i in range(iterations):
                     #print('Iteration number: ', i)
-                    errors_list = evaluation(tau[k], labels[k], "H",
+                    curr_errors_dict = evaluation(tau[k], labels[k], "H",
                                             OUTLIER_THRESHOLD_GMART=parameters[par][0],
                                             NUMBER_OF_CLUSTER=parameters[par][1],
                                             algorythms=algorythms)
-                    t_link_err.append(errors_list[0])
-                    t_link_gmart_dyn_err.append(errors_list[1])
-                    t_link_gmart_cos_err.append(errors_list[2])
 
-                '''print('Mean error for t_linkage is: ', np.sum(t_link_err) / iterations)
-                print('Mean error for t_linkage + gmart_dyn is: ', np.sum(t_link_gmart_dyn_err) / iterations)
-                print('Mean error for t_linkage gmart_cos is: ', np.sum(t_link_gmart_cos_err) / iterations)
-                print('\n')'''
+                    for key in curr_errors_dict:
+                        if key in err_dict:
+                            err_dict[key].append(curr_errors_dict[key])
+                        else:
+                            err_dict[key] = [curr_errors_dict[key]]
 
-                images_err_list[k].append(np.sum(t_link_err) / iterations)
-                images_err_list[k].append(np.sum(t_link_gmart_dyn_err) / iterations)
-                images_err_list[k].append(np.sum(t_link_gmart_cos_err) / iterations)
+                for key in err_dict:
+                    err = np.sum(err_dict[key]) / iterations
+                    print('Mean error for ', key, ' is: ', np.round(err,4))
+                    images_err_list[k][key] = err
+                print('\n')
 
-                t_link_err.clear()
-                t_link_gmart_dyn_err.clear()
-                t_link_gmart_cos_err.clear()
-
-            a.clear()
-            b.clear()
-            c.clear()
+            fullErrors = dict()
+            for key in errors:
+                fullErrors[key] = []
 
             for i in range(np.shape(images_err_list)[0]):
-                a.append(images_err_list[i][0])
-                b.append(images_err_list[i][1])
-                c.append(images_err_list[i][2])
+                for key in errors:
+                    fullErrors[key].append(images_err_list[i][key])
 
-            print('Mean error for t_linkage for the entire dataset is: ', np.sum(a) / len(images_err_list))
-            print('Mean error for t_linkage + gmart_dyn for the entire dataset is: ', np.sum(b) / len(images_err_list))
-            print('Mean error for t_linkage gmart_cos for the entire dataset is: ', np.sum(c) / len(images_err_list))
+            for key in err_dict:
+                    print('Mean error for ', key,' for the entire dataset is: ', np.round(np.sum(fullErrors[key]) / len(images_err_list),4))
+            print('\n')
 
             for l in range(len(labels)):
-                images_err_list[l].clear()
+                images_err_list[l] = dict()
