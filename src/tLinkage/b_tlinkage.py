@@ -23,7 +23,6 @@ eng.addpath(r'C:\Users\allem\Desktop\multilink\utils',nargout=0)
 eng.addpath(r'C:\Users\allem\Desktop\multilink',nargout=0)
 
 OUTLIER_THRESHOLD = 8
-OUTLIER_THRESHOLD_GMART = 37
 
 DISPLAY = False
 
@@ -75,15 +74,12 @@ def evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k
     
     DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask_gt, label_k + " - Ground-truth")
 
-    clusters = []
-
     for i in range(len(clusters_dyn)):
         # Clustering
-        #clusters, pref_m = clustering(pref_m)
         clusters_mask = get_cluster_mask(clusters_dyn[i], num_of_points, OUTLIER_THRESHOLD)
     
         # Plot clusters
-        # DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Estimation")
+        DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Estimation")
         
         # Compute Misclassification Error
         err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
@@ -92,11 +88,10 @@ def evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k
         print("ME % = " + str(round(float(me), 4)),'\n')
         
         # Clustering
-        #clusters, pref_m = clustering(pref_m)
         clusters_mask = get_cluster_mask(clusters_cut[i], num_of_points, OUTLIER_THRESHOLD)
         
         # Plot clusters
-        # DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Estimation")
+        DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Estimation")
         
         # Compute Misclassification Error
         err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
@@ -115,7 +110,6 @@ def getMultilinkParams(data_dict, pref_m):
 
     return points, prefM, gricParam
 
-
 def evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt):
       # Clustering
     clusters, _, _ = clustering(pref_m)
@@ -130,12 +124,12 @@ def evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img
     print("ME % = " + str(round(float(me), 4)), '\n')
     #errors_list.append(round(float(me), 4))
 
-def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt,nb_clusters):
+def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt,nb_clusters, outlier_th):
     _, _, linkage_m = clustering(pref_m, dCut = True)
 
     clusters_dyn, clusters_cut = bench_methods(dst_pts, nb_clusters, ['tlinkage'], linkage_m)
 
-    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
+    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, outlier_th)
     
     # Plot clusters
     DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Dyn Estimation")
@@ -147,7 +141,7 @@ def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i
     print("ME % = " + str(round(float(me), 4)),'\n')
     #errors_list.append(round(float(me), 4))
 
-    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
+    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, outlier_th)
     
     # Plot clusters
     DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Gmart Flat Estimation")
@@ -159,7 +153,7 @@ def evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i
     print("ME % = " + str(round(float(me), 4)),'\n')
     #errors_list.append(round(float(me), 4))
 
-def evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt):
+def evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, outlier_th):
     _, _, linkage_m = clustering(pref_m, dCut = True)
     dist = pdist(dst_pts)
     dist = squareform(dist)
@@ -180,10 +174,10 @@ def evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k
     for key in clusters_dict:
         clusters.append(clusters_dict[key])
 
-    clusters_mask = get_cluster_mask(clusters, num_of_points, 42)
+    clusters_mask = get_cluster_mask(clusters, num_of_points, outlier_th)
     
     # Plot clusters
-    plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Pac Bayesian Estimation")
+    DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - TLinkage + Pac Bayesian Estimation")
     
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
@@ -215,11 +209,11 @@ def evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clu
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    #print("Multilink")
-    #print("ME % = " + str(round(float(me), 4)),'\n')
+    print("Multilink")
+    print("ME % = " + str(round(float(me), 4)),'\n')
     # errors_list.append(round(float(me), 4))
 
-def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, nb_clusters):
+def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, nb_clusters,outlier_th):
     dendro = eng.multiLinkMock(points,prefM,modelType,gricParam)         
     dendro_clean = []
     nums = {i: 1 for i in range(num_of_points)}
@@ -234,7 +228,7 @@ def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j
 
     clusters_dyn, clusters_cut = bench_methods(dst_pts, nb_clusters , ['multilink'], dendro_clean)
 
-    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, OUTLIER_THRESHOLD_GMART)
+    clusters_mask = get_cluster_mask(clusters_dyn[0], num_of_points, outlier_th)
     
     # Plot clusters
     DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Dyn Estimation")
@@ -242,11 +236,11 @@ def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    #print("Multilink with GMART DYN")
-    #print("ME % = " + str(round(float(me), 4)),'\n')
+    print("Multilink with GMART DYN")
+    print("ME % = " + str(round(float(me), 4)),'\n')
     #errors_list.append(round(float(me), 4))
 
-    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, OUTLIER_THRESHOLD_GMART)
+    clusters_mask = get_cluster_mask(clusters_cut[0], num_of_points, outlier_th)
     
     # Plot clusters
     DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Gmart Cut Estimation")
@@ -254,11 +248,11 @@ def evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    #print("Multilink with GMART CUT")
-    #print("ME % = " + str(round(float(me), 4)),'\n')
+    print("Multilink with GMART CUT")
+    print("ME % = " + str(round(float(me), 4)),'\n')
     #errors_list.append(round(float(me), 4))
 
-def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam):
+def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam,outlier_th):
 
     dendro = eng.multiLinkMock(points,prefM,modelType,gricParam)         
     dendro_clean = []
@@ -290,7 +284,7 @@ def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i,
     for key in clusters_dict:
         clusters.append(clusters_dict[key])
 
-    clusters_mask = get_cluster_mask(clusters, num_of_points, 20)
+    clusters_mask = get_cluster_mask(clusters, num_of_points, outlier_th)
     
     # Plot clusters
     DISPLAY and plot_clusters(img_i, img_j, src_pts, dst_pts, clusters_mask, label_k + " - Multilink + Pac Bayesian Estimation")
@@ -298,8 +292,8 @@ def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i,
     # Compute Misclassification Error
     err, num_of_pts = compute_errors(clusters_mask, clusters_mask_gt)
     me = err / num_of_pts  # compute misclassification error
-    #print("Multilink with Pac Bayesian")
-    #print("ME % = " + str(round(float(me), 4)),'\n')
+    print("Multilink with Pac Bayesian")
+    print("ME % = " + str(round(float(me), 4)),'\n')
 
 def evaluation(tau, label_k, mode, OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
 
@@ -333,10 +327,10 @@ def evaluation(tau, label_k, mode, OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
     evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
 
     # Clustering with TLinkage and Gmart
-    evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, NUMBER_OF_CLUSTER)
+    evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
 
     # Clustering with TLinkage and Pac Bayesian Cut
-    evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+    evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, OUTLIER_THRESHOLD_GMART)
 
     points, prefM, gricParam = getMultilinkParams(data_dict, pref_m)
 
@@ -344,11 +338,10 @@ def evaluation(tau, label_k, mode, OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
     evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam)
 
     # Clustering with Multilink and Gmart
-    evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, NUMBER_OF_CLUSTER)
+    evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
 
     # Clustering with Multilink and Pac Baysian Cut
-    evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam)
-    
+    # evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam, OUTLIER_THRESHOLD_GMART)
     
     return errors_list
 
