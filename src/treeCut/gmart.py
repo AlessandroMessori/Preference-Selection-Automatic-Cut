@@ -2,9 +2,6 @@ import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 
-nbClusters = 20
-methods = ['single','complete','average','weighted','centroid','median','ward']
-
 def compute_dyncut(data, nbClusters, children_map):
     nbVertices = max(children_map)
     inf = float("inf")
