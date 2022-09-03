@@ -4,8 +4,8 @@ from tLinkage.b_tlinkage import evaluation
 if __name__ == '__main__':
     # region INPUT
     mode = 2  # [1 for Motion Segmentation | 2 for Plane Segmentation]
-    k = 5  # [k is the image-pair index; select a value from 0 to 18]
-    iterations = 10
+    algorythms = ["base","tlinkage","tlinkage-gmart","tlinkage-pac","multilink","multilink-gmart"]
+    iterations = 5
     # endregion
     if mode == 1:
         # region [CASE 1] Motion segmentation
@@ -38,7 +38,8 @@ if __name__ == '__main__':
                     #print('Iteration number: ', i)
                     errors_list = evaluation(tau[k], labels[k], "FM",
                                             OUTLIER_THRESHOLD_GMART=parameters[par][0],
-                                            NUMBER_OF_CLUSTER=parameters[par][1])
+                                            NUMBER_OF_CLUSTER=parameters[par][1],
+                                            algorythms=algorythms)
                     t_link_err.append(errors_list[0])
                     t_link_gmart_dyn_err.append(errors_list[1])
                     t_link_gmart_cos_err.append(errors_list[2])
@@ -100,7 +101,8 @@ if __name__ == '__main__':
                     #print('Iteration number: ', i)
                     errors_list = evaluation(tau[k], labels[k], "H",
                                             OUTLIER_THRESHOLD_GMART=parameters[par][0],
-                                            NUMBER_OF_CLUSTER=parameters[par][1])
+                                            NUMBER_OF_CLUSTER=parameters[par][1],
+                                            algorythms=algorythms)
                     t_link_err.append(errors_list[0])
                     t_link_gmart_dyn_err.append(errors_list[1])
                     t_link_gmart_cos_err.append(errors_list[2])

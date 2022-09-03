@@ -103,7 +103,7 @@ def getMultilinkParams(data_dict, pref_m):
     gricParam = dict()
     gricParam["lambda1"] = 1                            
     gricParam["lambda2"] = 2                           
-    gricParam["sigma"] = 8
+    gricParam["sigma"] = 2e-2
 
     points = matlab.double(data_dict['data'].tolist())
     prefM = matlab.double(pref_m.tolist())
@@ -295,7 +295,7 @@ def evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i,
     print("Multilink with Pac Bayesian")
     print("ME % = " + str(round(float(me), 4)),'\n')
 
-def evaluation(tau, label_k, mode, OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
+def evaluation(tau, label_k, mode, algorythms ,OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
 
     errors_list = []
     # Get image path from label_k
@@ -320,28 +320,37 @@ def evaluation(tau, label_k, mode, OUTLIER_THRESHOLD_GMART,NUMBER_OF_CLUSTER):
     DISPLAY and show_pref_matrix(pref_m, label_k)
     DISPLAY and show_pref_matrix(pref_m, label_k)
     
+    
     # Clustering with classic clusteting methods + gmart
-    evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+    if "base" in algorythms:
+        evaluateBaseMethods(methods,src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
 
     # Clustering with TLinkage 
-    evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
+    if "tlinkage" in algorythms:
+        evaluateTLinkage(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt)
 
     # Clustering with TLinkage and Gmart
-    evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
+    if "tlinkage-gmart" in algorythms:
+        evaluateTLinkageGmart(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
 
     # Clustering with TLinkage and Pac Bayesian Cut
-    evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, OUTLIER_THRESHOLD_GMART)
+    if "tlinkage-pac" in algorythms:
+        evaluateTLinkagePacBayesian(src_pts, dst_pts, num_of_points, pref_m, label_k,img_i, img_j, clusters_mask_gt, OUTLIER_THRESHOLD_GMART)
 
-    points, prefM, gricParam = getMultilinkParams(data_dict, pref_m)
+    if "multilink" in algorythms or "multilink-gmart" in algorythms or "multilink-pac" in algorythms:
+        points, prefM, gricParam = getMultilinkParams(data_dict, pref_m)
 
     # Clustering with Multilink
-    evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam)
+    if "multilink" in algorythms:
+        evaluateMultilink(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam)
 
     # Clustering with Multilink and Gmart
-    evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
+    if "multilink-gmart" in algorythms:
+        evaluateMultilinkGmart(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points, prefM, modelType, gricParam, NUMBER_OF_CLUSTER, OUTLIER_THRESHOLD_GMART)
 
     # Clustering with Multilink and Pac Baysian Cut
-    # evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam, OUTLIER_THRESHOLD_GMART)
+    #if "multilink-pac" in algorythms:
+    #   evaluateMultilinkPacBayesian(src_pts, dst_pts, num_of_points, label_k,img_i, img_j, clusters_mask_gt, points,prefM,modelType,gricParam, OUTLIER_THRESHOLD_GMART)
     
     return errors_list
 
