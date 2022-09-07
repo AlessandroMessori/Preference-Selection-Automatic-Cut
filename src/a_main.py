@@ -57,6 +57,7 @@ if __name__ == '__main__':
 
             for key in err_dict:
                     print('Mean error for ', key,' for the entire dataset is: ', np.round(np.sum(fullErrors[key]) / len(images_err_list),4))
+                    print('Std for ', key,' for the entire dataset is: ', np.round(np.std(fullErrors[key]),4))
             print('\n')
 
             for l in range(len(labels)):
@@ -114,6 +115,7 @@ if __name__ == '__main__':
 
             for key in err_dict:
                     print('Mean error for ', key,' for the entire dataset is: ', np.round(np.sum(fullErrors[key]) / len(images_err_list),4))
+                    print('Std for ', key,' for the entire dataset is: ', np.round(np.std(fullErrors[key]),4))
             print('\n')
 
             for l in range(len(labels)):
