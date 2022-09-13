@@ -1,24 +1,22 @@
-# IACV Project
+# Preference Selection Automatic Cut
 
 
-## Install Conda on Windows
+## Introduction
 
-https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html
+The objective of this project is to integrate automatic dendrogram cut methods into the preference based model fitting algorithms T-Linkage and Mutlilink.
+Our integration works by modifying the original algorithms in order to complete the preference dendrogram which would be left incomplete in the original iterations. 
+We then performed fine tuning on the model parameters in order to optimize the performance, finally we tested the results of our project on plane and motions segmentation on the Adelaide dataset.
 
-## Create the environment from yml file
-    conda env create -f environment.yml
+For more details you can refer to our project's documentation: 
 
-## Activate conda environment
-    conda activate iacv
 
-## Deactivate conda environment
-    conda deactivate
+## Results
+Testing on the Adelaide dataset, we were able to reduce the Mean Percentare Error of plane segmentation with T-Linkage of 7%
 
-## Install the libraries from requirements.txt
-    pip install -r requirements.txt
+## References
 
-## Install a new Library with pip
-    pip install library_name
+The automatic cut methods used in this project are taken from the following sources:
 
-## Save new installed libraries in requirements.txt
-    pip freeze > requirements.txt
+https://gmarti.gitlab.io/ml/2017/05/12/cut-a-dendrogram.html
+
+https://towardsdatascience.com/automatic-dendrogram-cut-e019202e59a7
