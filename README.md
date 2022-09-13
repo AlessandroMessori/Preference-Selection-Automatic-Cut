@@ -7,7 +7,7 @@ The objective of this project is to integrate automatic dendrogram cut methods i
 Our integration works by modifying the original algorithms in order to complete the preference dendrogram which would be left incomplete in the original iterations. 
 We then performed fine tuning on the model parameters in order to optimize the performance, finally we tested the results of our project on plane and motions segmentation on the Adelaide dataset.
 
-For more details you can refer to our project's documentation: 
+For more details you can refer to our project's documentation at https://github.com/AlessandroMessori/Preference-Selection-Automatic-Cut/blob/main/Documentation.pdf
 
 
 ## Results
